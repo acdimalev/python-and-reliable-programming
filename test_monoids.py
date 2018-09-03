@@ -1,57 +1,80 @@
-def test_monoid(set_strategy, binary_operation, identity_element):
+from unittest import TestCase
+import hypothesis.strategies as st
+import operator as op
+
+
+def assert_monoid(set_strategy, binary_operation, identity_element):
     from hypothesis import given
 
     @given(set_strategy)
-    def test_monoid_identity(a):
+    def assert_monoid_identity(a):
         '''e * a == a == a * e'''
 
-        assert binary_operation(identity_element, a) == a
-        assert binary_operation(a, identity_element) == a
+        assert a == binary_operation(identity_element, a)
+        assert a == binary_operation(a, identity_element)
+
 
     @given(set_strategy, set_strategy, set_strategy)
-    def test_monoid_associativity(a, b, c):
+    def assert_monoid_associativity(a, b, c):
         '''(a * b) * c == a * (b * c)'''
 
-        d = binary_operation(binary_operation(a, b), c)
-        e = binary_operation(a, binary_operation(b, c))
-        assert d == e
+        assert op.eq(
+            binary_operation(binary_operation(a, b), c),
+            binary_operation(a, binary_operation(b, c)),
+        )
 
-    test_monoid_identity()
-    test_monoid_associativity()
-
-
-def reverse_add(a, b):
-    return b + a
+    assert_monoid_identity()
+    assert_monoid_associativity()
 
 
-def implies(a, b):
-    return (not a) or b
+class TestMonoidExamples(TestCase):
+
+    def test_string_concatenation(self):
+        assert_monoid(st.text(), op.add, "")
+
+    def test_list_concatenation(self):
+        assert_monoid(st.lists(st.booleans()), op.add, [])
+
+    def test_list_reverse_concatenation(self):
+        assert_monoid(st.lists(st.booleans()), lambda x, y: op.add(y, x), [])
+
+    def test_boolean_conjunction(self):
+        assert_monoid(st.booleans(), op.__and__, True)
+
+    def test_boolean_disjunction(self):
+        assert_monoid(st.booleans(), op.__or__, False)
+
+    def test_boolean_exclusive_disjunction(self):
+        assert_monoid(st.booleans(), op.__xor__, False)
+
+    def test_integer_addition(self):
+        assert_monoid(st.integers(), op.add, 0)
+
+    def test_integer_multiplication(self):
+        assert_monoid(st.integers(), op.mul, 1)
 
 
-def main():
-    import hypothesis.strategies as st
-    import operator as op
+class TestMonoidCounterexamples(TestCase):
 
-    # examples
+    def test_boolean_implication(self):
+        implies = lambda a, b: (not a) or b
+        with self.assertRaises(Exception):
+            assert_monoid(st.booleans(), implies, False),
+        with self.assertRaises(Exception):
+            assert_monoid(st.booleans(), implies, True),
 
-    test_monoid(st.text(), op.add, "")
-    test_monoid(st.lists(st.booleans()), op.add, [])
-    test_monoid(st.lists(st.booleans()), reverse_add, [])
-    test_monoid(st.booleans(), op.__and__, True)
-    test_monoid(st.booleans(), op.__or__, False)
-    test_monoid(st.booleans(), op.__xor__, False)
-    test_monoid(st.integers(), op.add, 0)
-    test_monoid(st.integers(), op.mul, 1)
+    def test_integer_subtraction(self):
+        with self.assertRaises(Exception):
+            assert_monoid(st.integers(), op.sub, 0)
 
-    # counterexamples
+    def test_integer_division(self):
+        with self.assertRaises(Exception):
+            assert_monoid(st.integers(), op.div, 0)
 
-    #test_monoid(st.booleans(), implies, False)
-    #test_monoid(st.booleans(), implies, True)
-    #test_monoid(st.integers(), op.sub, 0)
-    #test_monoid(st.integers(), op.div, 1)
-    #test_monoid(st.floats(), op.add, 0)
-    #test_monoid(st.floats(), op.mul, 1)
+    def test_float_addition(self):
+        with self.assertRaises(Exception):
+            assert_monoid(st.floats(), op.add, 0)
 
-
-if __name__ == '__main__':
-    main()
+    def test_float_multiplication(self):
+        with self.assertRaises(Exception):
+            assert_monoid(st.floats(), op.mul, 1)
