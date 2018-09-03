@@ -13,7 +13,6 @@ def assert_monoid(set_strategy, binary_operation, identity_element):
         assert a == binary_operation(identity_element, a)
         assert a == binary_operation(a, identity_element)
 
-
     @given(set_strategy, set_strategy, set_strategy)
     def assert_monoid_associativity(a, b, c):
         '''(a * b) * c == a * (b * c)'''
@@ -36,7 +35,8 @@ class TestMonoidExamples(TestCase):
         assert_monoid(st.lists(st.booleans()), op.add, [])
 
     def test_list_reverse_concatenation(self):
-        assert_monoid(st.lists(st.booleans()), lambda x, y: op.add(y, x), [])
+        def radd(x, y): return y + x
+        assert_monoid(st.lists(st.booleans()), radd, [])
 
     def test_boolean_conjunction(self):
         assert_monoid(st.booleans(), op.__and__, True)
@@ -57,7 +57,7 @@ class TestMonoidExamples(TestCase):
 class TestMonoidCounterexamples(TestCase):
 
     def test_boolean_implication(self):
-        implies = lambda a, b: (not a) or b
+        def implies(a, b): return (not a) or b
         with self.assertRaises(Exception):
             assert_monoid(st.booleans(), implies, False),
         with self.assertRaises(Exception):
