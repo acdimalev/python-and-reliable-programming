@@ -6,4 +6,5 @@
 #
 attrs==18.2.0             # via hypothesis
 coverage==4.5.1           # via hypothesis
+frozendict==1.2
 hypothesis==3.70.3
