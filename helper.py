@@ -16,7 +16,7 @@ def function(returns):
         def f(*args, **kwargs):
             key = (args, frozendict(kwargs))
             if key not in d:
-                d[key] = from_type(returns).example()
+                d[key] = returns.example()
             return d[key]
         return f
     return builds(new_function)

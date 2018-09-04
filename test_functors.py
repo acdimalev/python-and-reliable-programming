@@ -19,8 +19,8 @@ def assert_functor(set_strategy, functor_map):
         assert identity(F_x) == functor_map(identity)(F_x)
 
     @given(
-        function(int),
-        function(int),
+        function(st.integers()),
+        function(st.integers()),
         set_strategy,
     )
     def assert_functor_composition(g, f, F_x):
@@ -47,6 +47,10 @@ class TestFunctorExamples(TestCase):
 
 
 class TestFunctorCounterexamples(TestCase):
+
+    def test_map(self):
+        with self.assertRaises(Exception):
+            assert_functor(st.lists(st.integers()), map)
 
     def test_fixed_function_map(self):
         def fixed_function_map(f):
