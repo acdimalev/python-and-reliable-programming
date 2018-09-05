@@ -5,10 +5,10 @@ import operator as op
 from helper import function
 
 
-def assert_functor(set_strategy, functor_map):
+def assert_functor(source_set_strategy, target_set_strategy, functor_map):
     from hypothesis import given
 
-    @given(set_strategy)
+    @given(target_set_strategy)
     def assert_functor_identity(F_x):
         '''F(id) = id
 
@@ -19,9 +19,9 @@ def assert_functor(set_strategy, functor_map):
         assert identity(F_x) == functor_map(identity)(F_x)
 
     @given(
-        function(st.integers()),
-        function(st.integers()),
-        set_strategy,
+        function(source_set_strategy),
+        function(source_set_strategy),
+        target_set_strategy,
     )
     def assert_functor_composition(g, f, F_x):
         '''F(g . f) == F(g) . F(f)
@@ -43,17 +43,17 @@ class TestFunctorExamples(TestCase):
     def test_list_map(self):
         def list_map(f):
             return lambda x: list(map(f, list(x)))
-        assert_functor(st.lists(st.integers()), list_map)
+        assert_functor(st.integers(), st.lists(st.integers()), list_map)
 
 
 class TestFunctorCounterexamples(TestCase):
 
     def test_map(self):
         with self.assertRaises(Exception):
-            assert_functor(st.lists(st.integers()), map)
+            assert_functor(st.integers(), st.lists(st.integers()), map)
 
     def test_fixed_function_map(self):
         def fixed_function_map(f):
             return lambda x: 1 + x
         with self.assertRaises(Exception):
-            assert_functor(st.integers(), fixed_function_map)
+            assert_functor(st.integers(), st.integers(), fixed_function_map)
